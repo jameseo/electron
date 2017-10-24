@@ -463,7 +463,11 @@ void Window::SetSheetOffset(double offsetY, mate::Arguments* args) {
 void Window::SetResizable(bool resizable) {
   window_->SetResizable(resizable);
 }
-
+void Window::SetWindowPosFlags(int afterflag , int flag) {
+  gfx::Point pos = window_->GetPosition();
+  gfx::Size size = window_->GetSize();
+  window_->SetWindowPos(afterflag , pos.x(), pos.y(), size.width(), size.height(), flag); 
+}
 bool Window::IsResizable() {
   return window_->IsResizable();
 }
@@ -898,6 +902,9 @@ void Window::BuildPrototype(v8::Isolate* isolate,
       .SetMethod("getMaximumSize", &Window::GetMaximumSize)
       .SetMethod("setSheetOffset", &Window::SetSheetOffset)
       .SetMethod("setResizable", &Window::SetResizable)
+#if defined(OS_WIN)
+      .SetMethod("setWindowPosFlags", &Window::SetWindowPosFlags)
+#endif
       .SetMethod("isResizable", &Window::IsResizable)
       .SetMethod("setMovable", &Window::SetMovable)
       .SetMethod("isMovable", &Window::IsMovable)

@@ -125,6 +125,8 @@ class Window : public mate::TrackableObject<Window>,
   std::vector<int> GetMaximumSize();
   void SetSheetOffset(double offsetY, mate::Arguments* args);
   void SetResizable(bool resizable);
+  //void SetWindowPos(int afterflag , int x, int y, int width, int height, mate::Arguments* args);
+  void SetWindowPosFlags(int afterflag, int flag);
   bool IsResizable();
   void SetMovable(bool movable);
   bool IsMovable();

@@ -77,6 +77,10 @@ void FlipWindowStyle(HWND handle, bool on, DWORD flag) {
     style &= ~flag;
   ::SetWindowLong(handle, GWL_STYLE, style);
 }
+void WindowPos(HWND handle,HWND afterflag , int x,int y,int width,int  height, int flag) {
+
+  ::SetWindowPos(handle,afterflag ,x,y,width,height,(DWORD)flag);
+}
 #endif
 
 bool IsAltKey(const content::NativeWebKeyboardEvent& event) {
@@ -570,7 +574,25 @@ void NativeWindowViews::SetContentSizeConstraints(
     old_size_constraints_ = size_constraints;
 #endif
 }
-
+void NativeWindowViews::SetWindowPos(int afterflag , int x, int y, int width, int height, int flag) {
+  #if defined(OS_WIN)
+      HWND afWnd = HWND_TOP;
+      if(afterflag == 1)
+      {
+        afWnd = HWND_BOTTOM;
+      }
+      else if(afterflag == -2)
+      {
+        afWnd = HWND_NOTOPMOST;
+      }
+      else if(afterflag == -1)
+      {
+        afWnd = HWND_TOPMOST;
+      }
+      WindowPos(GetAcceleratedWidget(),afWnd ,x,y,width,height, flag);
+  # endif 
+}
+  
 void NativeWindowViews::SetResizable(bool resizable) {
 #if defined(OS_WIN)
   if (has_frame())
