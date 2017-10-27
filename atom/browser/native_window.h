@@ -107,8 +107,9 @@ class NativeWindow : public base::SupportsUserData,
   virtual double GetSheetOffsetX();
   virtual double GetSheetOffsetY();
   virtual void SetResizable(bool resizable) = 0;
+  #if defined(OS_WIN)
   virtual void SetWindowPos(int afterflag , int x, int y, int width, int height, int flag)= 0;
-  
+  #endif
   virtual bool IsResizable() = 0;
   virtual void SetMovable(bool movable) = 0;
   virtual bool IsMovable() = 0;

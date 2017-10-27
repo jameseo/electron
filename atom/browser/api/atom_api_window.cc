@@ -463,11 +463,13 @@ void Window::SetSheetOffset(double offsetY, mate::Arguments* args) {
 void Window::SetResizable(bool resizable) {
   window_->SetResizable(resizable);
 }
+#if defined(OS_WIN)
 void Window::SetWindowPosFlags(int afterflag , int flag) {
   gfx::Point pos = window_->GetPosition();
   gfx::Size size = window_->GetSize();
   window_->SetWindowPos(afterflag , pos.x(), pos.y(), size.width(), size.height(), flag); 
 }
+#endif
 bool Window::IsResizable() {
   return window_->IsResizable();
 }

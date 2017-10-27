@@ -126,7 +126,9 @@ class Window : public mate::TrackableObject<Window>,
   void SetSheetOffset(double offsetY, mate::Arguments* args);
   void SetResizable(bool resizable);
   //void SetWindowPos(int afterflag , int x, int y, int width, int height, mate::Arguments* args);
+  #if defined(OS_WIN)
   void SetWindowPosFlags(int afterflag, int flag);
+  #endif
   bool IsResizable();
   void SetMovable(bool movable);
   bool IsMovable();
