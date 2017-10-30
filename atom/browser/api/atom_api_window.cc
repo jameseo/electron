@@ -470,6 +470,9 @@ void Window::SetWindowPosFlags(int afterflag , int flag) {
   window_->SetWindowPos(afterflag , pos.x(), pos.y(), size.width(), size.height(), flag); 
 }
 #endif
+void Window::SetTopPos(){
+  window_->SetTopPos();
+}
 bool Window::IsResizable() {
   return window_->IsResizable();
 }
@@ -906,7 +909,8 @@ void Window::BuildPrototype(v8::Isolate* isolate,
       .SetMethod("setResizable", &Window::SetResizable)
 #if defined(OS_WIN)
       .SetMethod("setWindowPosFlags", &Window::SetWindowPosFlags)
-#endif
+#endif  
+      .SetMethod("setTopPos" , &Window::SetTopPos)
       .SetMethod("isResizable", &Window::IsResizable)
       .SetMethod("setMovable", &Window::SetMovable)
       .SetMethod("isMovable", &Window::IsMovable)

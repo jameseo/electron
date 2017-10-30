@@ -952,7 +952,6 @@ gfx::Rect NativeWindowMac::GetBounds() {
   bounds.set_y(NSHeight([screen frame]) - NSMaxY(frame));
   return bounds;
 }
-
 void NativeWindowMac::SetContentSizeConstraints(
     const extensions::SizeConstraints& size_constraints) {
   auto convertSize = [this](const gfx::Size& size) {
@@ -1328,7 +1327,9 @@ void NativeWindowMac::SetVibrancy(const std::string& type) {
 
   [effect_view setMaterial:vibrancyType];
 }
-
+void NativeWindowMac::SetTopPos(){
+  [window_ orderWindow:NSWindowAbove relativeTo:0];
+}
 void NativeWindowMac::OnInputEvent(const blink::WebInputEvent& event) {
   switch (event.type) {
     case blink::WebInputEvent::GestureScrollBegin:

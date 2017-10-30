@@ -83,6 +83,7 @@ void WindowPos(HWND handle,HWND afterflag , int x,int y,int width,int  height, i
 }
 #endif
 
+
 bool IsAltKey(const content::NativeWebKeyboardEvent& event) {
   return event.windowsKeyCode == ui::VKEY_MENU;
 }
@@ -574,8 +575,9 @@ void NativeWindowViews::SetContentSizeConstraints(
     old_size_constraints_ = size_constraints;
 #endif
 }
+#if defined(OS_WIN)
 void NativeWindowViews::SetWindowPos(int afterflag , int x, int y, int width, int height, int flag) {
-  #if defined(OS_WIN)
+
       HWND afWnd = HWND_TOP;
       if(afterflag == 1)
       {
@@ -590,9 +592,16 @@ void NativeWindowViews::SetWindowPos(int afterflag , int x, int y, int width, in
         afWnd = HWND_TOPMOST;
       }
       WindowPos(GetAcceleratedWidget(),afWnd ,x,y,width,height, flag);
-  # endif 
+
 }
-  
+#endif  
+void NativeWindowViews::SetTopPos(){
+  #if defined(OS_WIN)
+  gfx::Point pos = GetPosition();
+  gfx::Size size = GetSize();
+  SetWindowPos(HWND_TOP , pos.x(), pos.y(), size.width(), size.height(), SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW); 
+  #endif
+}
 void NativeWindowViews::SetResizable(bool resizable) {
 #if defined(OS_WIN)
   if (has_frame())

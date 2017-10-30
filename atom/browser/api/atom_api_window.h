@@ -129,6 +129,7 @@ class Window : public mate::TrackableObject<Window>,
   #if defined(OS_WIN)
   void SetWindowPosFlags(int afterflag, int flag);
   #endif
+  void SetTopPos();
   bool IsResizable();
   void SetMovable(bool movable);
   bool IsMovable();

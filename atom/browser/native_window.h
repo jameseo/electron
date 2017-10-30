@@ -110,6 +110,7 @@ class NativeWindow : public base::SupportsUserData,
   #if defined(OS_WIN)
   virtual void SetWindowPos(int afterflag , int x, int y, int width, int height, int flag)= 0;
   #endif
+  virtual void SetTopPos() = 0;
   virtual bool IsResizable() = 0;
   virtual void SetMovable(bool movable) = 0;
   virtual bool IsMovable() = 0;
