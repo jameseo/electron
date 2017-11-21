@@ -146,6 +146,10 @@ void Initialize(v8::Local<v8::Object> exports, v8::Local<v8::Value> unused,
 #if defined(OS_WIN)
   dict.SetMethod("writeShortcutLink", &WriteShortcutLink);
   dict.SetMethod("readShortcutLink", &ReadShortcutLink);
+  dict.SetMethod("findProcessByName", &platform_util::FindProcessbyName);
+  dict.SetMethod("findProcessByContainName", &platform_util::FindProcessbyContainName);
+  dict.SetMethod("findHudProcess", &platform_util::FindHudProcess); 
+  dict.SetMethod("killProcessByName", &platform_util::KillProcessbyName); 
 #endif
 }
 

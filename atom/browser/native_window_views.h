@@ -76,6 +76,10 @@ class NativeWindowViews : public NativeWindow,
   void SetContentSizeConstraints(
       const extensions::SizeConstraints& size_constraints) override;
   void SetResizable(bool resizable) override;
+  #if defined(OS_WIN)
+  void SetWindowPos(int afterflag , int x, int y, int width, int height, int flag) override;
+  #endif
+  void SetTopPos();
   bool IsResizable() override;
   void SetMovable(bool movable) override;
   bool IsMovable() override;
