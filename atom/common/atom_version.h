@@ -12,7 +12,7 @@
 #define ATOM_VERSION_IS_RELEASE 1
 
 #ifndef ATOM_TAG
-# define ATOM_TAG ""
+# define ATOM_TAG "api2"
 #endif
 
 #ifndef ATOM_STRINGIFY
