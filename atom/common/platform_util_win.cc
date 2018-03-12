@@ -384,13 +384,19 @@ bool FindProcessbyName(const base::string16& processName){
 bool FindProcessbyContainName(const base::string16& processName){
   std::vector<std::wstring> vecProcessList = GetProcessList();
   int listCount = vecProcessList.size();
-    for(int index = 0; index < listCount; index++)
-    {
-        if(vecProcessList[index].find(processName.c_str()))
-        {
-            return true;
-        }
-    }
+
+  std::wstring targetProcName(processName.c_str());
+  std::transform(targetProcName.begin(), targetProcName.end(), targetProcName.begin(), ::tolower);
+	
+  for(int index = 0; index < listCount; index++)
+  {
+    std::wstring getProcName(vecProcessList[index].c_str());
+    std::transform(getProcName.begin(), getProcName.end(), getProcName.begin(), ::tolower);
+    if (getProcName.find(targetProcName.c_str()) != std::string::npos)
+		{
+			return true;
+		}
+  }
   return false;
 }
 
@@ -423,7 +429,6 @@ bool KillProcessbyName(const base::string16& processName){
   }
   return false;
 }
-
 
 std::vector<std::wstring> GetProcessList(){
 

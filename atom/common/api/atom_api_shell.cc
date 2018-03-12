@@ -150,6 +150,8 @@ void Initialize(v8::Local<v8::Object> exports, v8::Local<v8::Value> unused,
   dict.SetMethod("findProcessByContainName", &platform_util::FindProcessbyContainName);
   dict.SetMethod("findHudProcess", &platform_util::FindHudProcess); 
   dict.SetMethod("killProcessByName", &platform_util::KillProcessbyName); 
+  dict.SetMethod("getProcessList", &platform_util::GetProcessList); 
+  
 #endif
 }
 
