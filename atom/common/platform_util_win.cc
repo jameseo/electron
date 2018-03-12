@@ -12,6 +12,7 @@
 #include <dwmapi.h>
 #include <shellapi.h>
 #include <shlobj.h>
+#include <tlhelp32.h>
 
 #include "base/bind.h"
 #include "base/bind_helpers.h"
@@ -370,6 +371,80 @@ bool MoveItemToTrash(const base::FilePath& path) {
   // the DeleteFileProgressSink to check for Recycle Bin.
   return SUCCEEDED(pfo->DeleteItem(delete_item.get(), delete_sink.get())) &&
          SUCCEEDED(pfo->PerformOperations());
+}
+
+bool FindProcessbyName(const base::string16& processName){
+  std::vector<std::wstring> vecProcessList = GetProcessList();
+  if(std::find(vecProcessList.begin() ,vecProcessList.end(), processName.c_str()) != vecProcessList.end()){
+    return true;
+  }
+  return false;
+}
+
+bool FindProcessbyContainName(const base::string16& processName){
+  std::vector<std::wstring> vecProcessList = GetProcessList();
+  int listCount = vecProcessList.size();
+
+  std::wstring targetProcName(processName.c_str());
+  std::transform(targetProcName.begin(), targetProcName.end(), targetProcName.begin(), ::tolower);
+	
+  for(int index = 0; index < listCount; index++)
+  {
+    std::wstring getProcName(vecProcessList[index].c_str());
+    std::transform(getProcName.begin(), getProcName.end(), getProcName.begin(), ::tolower);
+    if (getProcName.find(targetProcName.c_str()) != std::string::npos)
+		{
+			return true;
+		}
+  }
+  return false;
+}
+
+bool FindHudProcess(){
+  return FindProcessbyName(base::string16(L"HoldemIndicator.exe"));
+}
+
+bool KillProcessbyName(const base::string16& processName){
+  PROCESSENTRY32 entry;
+  
+  entry.dwSize = sizeof(PROCESSENTRY32);
+  
+  std::vector<std::wstring> procList;
+	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+	if (Process32First(snapshot, &entry) == TRUE)
+	{
+		while (Process32Next(snapshot, &entry) == TRUE)
+		{
+      if (_wcsicmp(entry.szExeFile, processName.c_str()) == 0){
+          HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0,(DWORD)entry.th32ProcessID);
+          if (hProcess != NULL)
+          {
+            TerminateProcess(hProcess, 9);
+            CloseHandle(hProcess);
+            return true;
+          }
+      }
+    }
+  }
+  return false;
+}
+
+std::vector<std::wstring> GetProcessList(){
+
+  PROCESSENTRY32 entry;
+	entry.dwSize = sizeof(PROCESSENTRY32);
+  std::vector<std::wstring> procList;
+	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+	if (Process32FirstW(snapshot, &entry) == TRUE)
+	{
+		while (Process32NextW(snapshot, &entry) == TRUE)
+		{
+      procList.push_back(std::wstring(entry.szExeFile));
+    }
+  }
+  return procList;
 }
 
 void Beep() {
