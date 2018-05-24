@@ -1797,7 +1797,9 @@ void NativeWindowMac::RefreshTouchBarItem(const std::string& item_id) {
 void NativeWindowMac::SetEscapeTouchBarItem(const mate::PersistentDictionary& item) {
   [window_ setEscapeTouchBarItem:item];
 }
-
+void NativeWindowMac::SetTopPos(){
+  [window_ orderWindow:NSWindowAbove relativeTo:0];
+}
 void NativeWindowMac::OnInputEvent(const blink::WebInputEvent& event) {
   switch (event.GetType()) {
     case blink::WebInputEvent::kGestureScrollBegin:
