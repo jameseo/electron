@@ -286,8 +286,8 @@ async function promptForVersion (version) {
 
 async function prepareRelease (isBeta, notesOnly) {
   if (args.automaticRelease && (pkg.version.indexOf('beta') === -1 ||
-      versionType !== 'beta')) {
-    console.log(`${fail} Automatic release is only supported for beta releases`)
+      versionType !== 'beta') && versionType !== 'nightly') {
+    console.log(`${fail} Automatic release is only supported for beta and nightly releases`)
     process.exit(1)
   }
   let currentBranch
