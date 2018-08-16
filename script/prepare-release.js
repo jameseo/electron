@@ -14,25 +14,35 @@ const pass = '\u2713'.green
 const path = require('path')
 const pkg = require('../package.json')
 const readline = require('readline')
+const semver = require('semver')
 const versionType = args._[0]
 
 // TODO (future) automatically determine version based on conventional commits
 // via conventional-recommended-bump
 
 if (!versionType && !args.notesOnly) {
-  console.log(`Usage: prepare-release versionType [major | minor | patch | beta]` +
-     ` (--stable) (--notesOnly) (--automaticRelease) (--branch)`)
+  console.log(`Usage: prepare-release versionType [major | minor | patch | beta | nightly]` +
+     ` (--stable) (--notesOnly) (--automaticRelease) (--branch) (--nightly)`)
   process.exit(1)
 }
+
+(async () => {
+  console.log(await determineNextNightly(await getCurrentBranch()))
+})()
 
 const github = new GitHub()
 const gitDir = path.resolve(__dirname, '..')
 github.authenticate({type: 'token', token: process.env.ELECTRON_GITHUB_TOKEN})
 
-function getNewVersion (dryRun) {
+async function getNewVersion (dryRun) {
   console.log(`Bumping for new "${versionType}" version.`)
   let bumpScript = path.join(__dirname, 'bump-version.py')
-  let scriptArgs = [bumpScript, `--bump ${versionType}`]
+  let scriptArgs = [bumpScript]
+  if (versionType === 'nightly') {
+    scriptArgs.push(`--version ${determineNextNightly(await getCurrentBranch())}`)
+  } else {
+    scriptArgs.push(`--bump ${versionType}`)
+  }
   if (args.stable) {
     scriptArgs.push('--stable')
   }
@@ -50,6 +60,43 @@ function getNewVersion (dryRun) {
   } catch (err) {
     console.log(`${fail} Could not bump version, error was:`, err)
   }
+}
+
+async function determineNextNightly (currentBranch) {
+  const twoPad = (n) => n < 10 ? `0${n}` : `${n}`
+  const d = new Date()
+  const date = `${d.getFullYear()}${twoPad(d.getMonth() + 1)}${twoPad(d.getDate())}`
+
+  let version
+
+  if (currentBranch === 'master') {
+    version = await determineNextNightlyForMaster()
+  }
+  if (!version) {
+    throw new Error(`not yet implemented for release branch: ${currentBranch}`)
+  }
+
+  return `${version}-nightly.${date}`
+}
+
+async function determineNextNightlyForMaster () {
+  let branchNames
+  let result = await GitProcess.exec(['branch', '-a', '--remote', '--list', 'origin/[0-9]-[0-9]-x'], gitDir)
+  if (result.exitCode === 0) {
+    branchNames = result.stdout.trim().split('\n')
+    const filtered = branchNames.map(b => b.replace('origin/', ''))
+    return getNextReleaseBranch(filtered)
+  } else {
+    throw new Error('Release branches could not be fetched.')
+  }
+}
+
+function getNextReleaseBranch (branches) {
+  const converted = branches.map(b => b.replace(/-/g, '.').replace('x', '0'))
+  const next = converted.reduce((v1, v2) => {
+    return semver.gt(v1, v2) ? v1 : v2
+  })
+  return `${parseInt(next.split('.')[0], 10) + 1}.0.0`
 }
 
 async function getCurrentBranch (gitDir) {
@@ -135,7 +182,7 @@ async function getReleaseNotes (currentBranch) {
 
 async function createRelease (branchToTarget, isBeta) {
   let releaseNotes = await getReleaseNotes(branchToTarget)
-  let newVersion = getNewVersion()
+  let newVersion = await getNewVersion()
   await tagRelease(newVersion)
   const githubOpts = {
     owner: 'electron',
@@ -208,7 +255,7 @@ async function tagRelease (version) {
 }
 
 async function verifyNewVersion () {
-  let newVersion = getNewVersion(true)
+  let newVersion = await getNewVersion(true)
   let response
   if (args.automaticRelease) {
     response = 'y'
