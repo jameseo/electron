@@ -69,7 +69,8 @@ async function determineNextNightly (currentBranch) {
 
   let version
 
-  if (currentBranch === 'master') {
+  // FIXME(codebytere): change back to `master`
+  if (currentBranch === 'add-nightly-concept') {
     version = await determineNextNightlyForMaster()
   }
   if (!version) {
