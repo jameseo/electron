@@ -199,7 +199,7 @@ def update_package_json(version, suffix):
 
 
 def tag_version(version, suffix):
-  execute(['git', 'commit', '-a', '-m', 'Bump v{0}'.format(version + suffix)])
+  execute(['git', 'commit', '-a', '-m', 'Bump v{0}'.format(version + suffix), '-n'])
 
 
 if __name__ == '__main__':

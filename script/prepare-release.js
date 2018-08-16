@@ -59,6 +59,7 @@ async function getNewVersion (dryRun) {
     return newVersion
   } catch (err) {
     console.log(`${fail} Could not bump version, error was:`, err)
+    throw err
   }
 }
 
