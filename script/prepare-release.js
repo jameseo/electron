@@ -39,7 +39,7 @@ async function getNewVersion (dryRun) {
   let bumpScript = path.join(__dirname, 'bump-version.py')
   let scriptArgs = [bumpScript]
   if (versionType === 'nightly') {
-    scriptArgs.push(`--version ${determineNextNightly(await getCurrentBranch())}`)
+    scriptArgs.push(`--version ${await determineNextNightly(await getCurrentBranch())}`)
   } else {
     scriptArgs.push(`--bump ${versionType}`)
   }
