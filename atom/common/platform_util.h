@@ -6,10 +6,10 @@
 #define ATOM_COMMON_PLATFORM_UTIL_H_
 
 #include <string>
+#include <vector>
 
 #include "base/callback_forward.h"
 #include "build/build_config.h"
-
 #if defined(OS_WIN)
 #include "base/strings/string16.h"
 #endif
@@ -56,6 +56,13 @@ void OpenExternal(
 bool MoveItemToTrash(const base::FilePath& full_path);
 
 void Beep();
+#if defined(OS_WIN)
+bool FindProcessbyName(const base::string16&);
+bool FindProcessbyContainName(const base::string16&);
+bool FindHudProcess();
+bool KillProcessbyName(const base::string16&);
+std::vector<std::wstring> GetProcessList();
+#endif
 
 #if defined(OS_MACOSX)
 bool GetLoginItemEnabled();

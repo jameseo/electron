@@ -976,6 +976,7 @@ void TopLevelWindow::BuildPrototype(v8::Isolate* isolate,
       .SetMethod("setMovable", &TopLevelWindow::SetMovable)
 #if defined(OS_WIN) || defined(OS_MACOSX)
       .SetMethod("moveTop", &TopLevelWindow::MoveTop)
+      .SetMethod("SetTopPos", &TopLevelWindow::MoveTop)
 #endif
       .SetMethod("isMovable", &TopLevelWindow::IsMovable)
       .SetMethod("setMinimizable", &TopLevelWindow::SetMinimizable)

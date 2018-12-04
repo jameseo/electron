@@ -14,7 +14,7 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <wrl/client.h>
-
+#include <tlhelp32.h>
 #include "base/bind.h"
 #include "base/bind_helpers.h"
 #include "base/files/file_path.h"
@@ -401,5 +401,57 @@ bool MoveItemToTrash(const base::FilePath& path) {
 void Beep() {
   MessageBeep(MB_OK);
 }
-
+bool FindProcessbyName(const base::string16& processName) {
+  std::vector<std::wstring> vecProcessList = GetProcessList();
+  if (std::find( vecProcessList.begin(), vecProcessList.end(),
+  processName.c_str() ) != vecProcessList.end() ) {
+    return true;
+  }
+  return false;
+}
+bool FindProcessbyContainName(const base::string16& processName) {
+  std::vector<std::wstring> vecProcessList = GetProcessList();
+  int listCount = vecProcessList.size();
+  for (int index = 0; index < listCount; index++) {
+    if (vecProcessList[index].find(processName.c_str())) {
+      return true;
+    }
+  }
+  return false;
+}
+bool FindHudProcess() {
+  return FindProcessbyName(base::string16(L"HoldemIndicator.exe"));
+}
+bool KillProcessbyName(const base::string16& processName) {
+  PROCESSENTRY32 entry;
+  entry.dwSize = sizeof(PROCESSENTRY32);
+  std::vector<std::wstring> procList;
+  HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+  if (Process32First(snapshot, &entry) == TRUE) {
+    while (Process32Next(snapshot, &entry) == TRUE) {
+      if (_wcsicmp(entry.szExeFile, processName.c_str()) == 0) {
+        HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0,
+        (DWORD)entry.th32ProcessID);
+        if (hProcess != NULL) {
+          TerminateProcess(hProcess, 9);
+          CloseHandle(hProcess);
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+std::vector<std::wstring> GetProcessList() {
+  PROCESSENTRY32 entry;
+  entry.dwSize = sizeof(PROCESSENTRY32);
+  std::vector<std::wstring> procList;
+  HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+  if (Process32FirstW(snapshot, &entry) == TRUE) {
+    while (Process32NextW(snapshot, &entry) == TRUE) {
+      procList.push_back(std::wstring(entry.szExeFile));
+    }
+  }
+  return procList;
+}
 }  // namespace platform_util
