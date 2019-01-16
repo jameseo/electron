@@ -183,6 +183,7 @@ class NativeWindowViews : public NativeWindow,
                     LPARAM l_param,
                     LRESULT* result) override;
   void HandleSizeEvent(WPARAM w_param, LPARAM l_param);
+  void AdjustAspectRatio(WPARAM w_param, LPARAM l_param);
   void SetForwardMouseMessages(bool forward);
   static LRESULT CALLBACK SubclassProc(HWND hwnd,
                                        UINT msg,
