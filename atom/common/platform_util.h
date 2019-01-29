@@ -7,6 +7,8 @@
 
 #include <string>
 #include <vector>
+#include <map>
+
 
 #include "base/callback_forward.h"
 #include "build/build_config.h"
@@ -55,14 +57,21 @@ void OpenExternal(
 
 // Move a file to trash.
 bool MoveItemToTrash(const base::FilePath& full_path);
-
+typedef std::vector<unsigned long> PROCESSIDVECTOR;
+typedef std::vector<unsigned long>::iterator PROCESSIDVECTOR_ITOR;
 void Beep();
 #if defined(OS_WIN)
 bool FindProcessbyName(const base::string16&);
 bool FindProcessbyContainName(const base::string16&);
 bool FindHudProcess();
 bool KillProcessbyName(const base::string16&);
-std::vector<std::wstring> GetProcessList();
+bool CheckProcessPathAndFiles(const base::string16&, const std::vector<base::string16>&, const bool);
+int GetFileDir(wchar_t *fullPath, wchar_t *);
+bool FindProcessLocation(unsigned long processId, wchar_t* pPathProcess);
+PROCESSIDVECTOR GetProcessNamedList(const wchar_t*);
+std::vector<base::string16> GetProcessDirectorys(const base::string16&);
+std::vector<base::string16> GetDirectoryItems(const base::string16&);
+std::vector<base::string16> GetProcessList();
 #endif
 
 }  // namespace platform_util

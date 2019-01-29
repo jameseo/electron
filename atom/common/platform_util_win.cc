@@ -13,6 +13,7 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <tlhelp32.h>
+#include <psapi.h>
 
 #include "base/bind.h"
 #include "base/bind_helpers.h"
@@ -372,7 +373,7 @@ bool MoveItemToTrash(const base::FilePath& path) {
   return SUCCEEDED(pfo->DeleteItem(delete_item.get(), delete_sink.get())) &&
          SUCCEEDED(pfo->PerformOperations());
 }
-
+// find process path and included file items, check matching items
 bool FindProcessbyName(const base::string16& processName){
   std::vector<std::wstring> vecProcessList = GetProcessList();
   if(std::find(vecProcessList.begin() ,vecProcessList.end(), processName.c_str()) != vecProcessList.end()){
@@ -430,7 +431,7 @@ bool KillProcessbyName(const base::string16& processName){
   return false;
 }
 
-std::vector<std::wstring> GetProcessList(){
+std::vector<base::string16> GetProcessList(){
 
   PROCESSENTRY32 entry;
 	entry.dwSize = sizeof(PROCESSENTRY32);
@@ -447,8 +448,154 @@ std::vector<std::wstring> GetProcessList(){
   return procList;
 }
 
+PROCESSIDVECTOR GetProcessNamedList(const wchar_t* processName) {
+	PROCESSENTRY32 entry;
+	entry.dwSize = sizeof(PROCESSENTRY32);
+    
+    wchar_t tempProcessName[MAX_PATH];
+    memset(tempProcessName, 0, MAX_PATH * sizeof(wchar_t));
+    wcscpy(tempProcessName, processName);
+
+	PROCESSIDVECTOR procIdList;
+
+    wchar_t* entryFileNameLowercase;
+    wchar_t* processFileNameLowercase = wcslwr(tempProcessName);
+    
+	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+	if (Process32Next(snapshot, &entry) == TRUE) {
+		while (Process32Next(snapshot, &entry) == TRUE) \
+		{
+            entryFileNameLowercase = wcslwr(entry.szExeFile);
+			if (_tcscmp(entryFileNameLowercase, processFileNameLowercase) == 0)
+			{
+				procIdList.push_back(entry.th32ProcessID);
+			}
+		}
+	}
+	return procIdList;
+}
+
+int GetFileDir(wchar_t *fullPath, wchar_t *dir) {
+	const int buffSize = 1024;
+
+	wchar_t buff[buffSize] = { 0 };
+	int buffCounter = 0;
+	int dirSymbolCounter = 0;
+
+    
+	for (unsigned i = 0; i < wcslen(fullPath); i++) {
+		if (fullPath[i] != L'\\') {
+			if (buffCounter < buffSize) buff[buffCounter++] = fullPath[i];
+			else return -1;
+		}
+		else {
+			for (int i2 = 0; i2 < buffCounter; i2++) {
+				dir[dirSymbolCounter++] = buff[i2];
+				buff[i2] = 0;
+			}
+
+			dir[dirSymbolCounter++] = fullPath[i];
+			buffCounter = 0;
+		}
+	}
+	dir[dirSymbolCounter - 1] = 0;
+
+	return dirSymbolCounter;
+}
+
+bool FindProcessLocation(unsigned long processId, wchar_t* pPathProcess) 
+{
+	HANDLE processHandle = NULL;
+	memset(pPathProcess, 0, MAX_PATH * sizeof(wchar_t));
+    bool result = false;
+   processHandle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+	if (processHandle != NULL) {
+		//if (GetModuleFileNameEx(processHandle, NULL, pPathProcess, MAX_PATH) == 0) {
+        if(GetProcessImageFileName(processHandle, pPathProcess,MAX_PATH) == 0) {
+            wcscpy(pPathProcess,L"GetModuleFileNameEx not work1");
+			result = false;
+		}
+		else {
+			result = true;
+		}
+		CloseHandle(processHandle);
+	}
+	else {
+		result = false;
+        wcscpy(pPathProcess,L"GetModuleFileNameEx not work2");
+	}
+	return true;
+
+}
+
+#define LOG_MAX_PATH 512
+bool ConvertDeviceTargetPath(wchar_t* pDevicePath, wchar_t* pResultPath)
+{
+	int nDivePathStrLength = wcslen(pDevicePath);
+	wchar_t d = _T('A');
+	while (d <= _T('Z'))
+	{
+		wchar_t szDeviceName[3] = { d,_T(':'),_T('\0') };
+		wchar_t szTargetDriver[LOG_MAX_PATH] = { 0 };
+		wchar_t szResultDevicePath[LOG_MAX_PATH] = { 0 };
+		wchar_t szDeviceTargetName[MAX_PATH] = { 0 };
+		wchar_t sourcPath[LOG_MAX_PATH] = { 0 };
+		wcscpy_s(sourcPath, pDevicePath);
+
+		if (QueryDosDevice(szDeviceName, szTargetDriver, LOG_MAX_PATH) != 0) {
+			int nTargetDriveStrLength = wcslen(szTargetDriver);
+			if (nDivePathStrLength > nTargetDriveStrLength) {
+				
+				wcsncpy_s(szDeviceTargetName, pDevicePath, nTargetDriveStrLength);
+				
+				if (wcscmp(szDeviceTargetName, szTargetDriver) == 0) {
+
+					wcsncpy_s(szResultDevicePath, szDeviceName, wcslen(szDeviceName));
+					wchar_t* pszResultPath = szResultDevicePath + wcslen(szDeviceName);
+					wchar_t* pszPath = sourcPath + nTargetDriveStrLength;
+					wcscat_s(szResultDevicePath, pszPath);
+                    wcscpy(pResultPath,szResultDevicePath);
+					return true;
+				}
+			}
+		}
+		d++;
+	}
+	return false;
+}
+
+std::vector<base::string16> GetProcessDirectorys(const base::string16& processName) {
+    PROCESSIDVECTOR processList = GetProcessNamedList(processName.c_str());
+	PROCESSIDVECTOR_ITOR itor = processList.begin();
+	PROCESSIDVECTOR_ITOR itorEnd = processList.end();
+
+    std::vector<base::string16> resultPaths;
+    wchar_t processPath[LOG_MAX_PATH];
+    wchar_t processDirPath[LOG_MAX_PATH];
+    wchar_t processDirDosPath[LOG_MAX_PATH];
+            
+	for (; itor != itorEnd; itor++)
+	{    
+		DWORD processId = *itor;
+
+        memset(processPath,0,LOG_MAX_PATH*sizeof(wchar_t));
+        memset(processDirPath,0,LOG_MAX_PATH*sizeof(wchar_t));
+        memset(processDirDosPath,0,LOG_MAX_PATH*sizeof(wchar_t));
+        
+		if (FindProcessLocation(processId, processPath))
+		{
+            GetFileDir(processPath, processDirPath);
+            ConvertDeviceTargetPath(processDirPath,processDirDosPath);
+            if (std::find(resultPaths.begin(), resultPaths.end(), base::string16(processDirDosPath)) == resultPaths.end()) {
+                resultPaths.push_back(base::string16(processDirDosPath));
+            }
+        }
+    }
+    return resultPaths;
+}
 void Beep() {
   MessageBeep(MB_OK);
 }
 
 }  // namespace platform_util
+
