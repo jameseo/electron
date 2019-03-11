@@ -70,7 +70,7 @@
 
 -  (BOOL)application:(NSApplication*)sender
 continueUserActivity:(NSUserActivity*)userActivity
-  restorationHandler:(void (^)(NSArray*restorableObjects))restorationHandler {
+  restorationHandler:(void (^ _Nonnull)(NSArray* _Nonnull))restorationHandler {
   std::string activity_type(base::SysNSStringToUTF8(userActivity.activityType));
   std::unique_ptr<base::DictionaryValue> user_info =
     atom::NSDictionaryToDictionaryValue(userActivity.userInfo);
